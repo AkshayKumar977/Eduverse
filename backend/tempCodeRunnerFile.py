@@ -1,16 +1,17 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
-from config import Config
-from models import db
+from flask import send_from_directory
+from backend.config import Config
+from backend.models import db
 from datetime import datetime
 
 # Import blueprints
-from routes.auth import auth_bp
-from routes.materials import materials_bp
-from routes.contributions import contributions_bp
-from routes.forums import forums_bp
-from routes.notifications import notifications_bp
+from backend.routes.auth import auth_bp
+from backend.routes.materials import materials_bp
+from backend.routes.contributions import contributions_bp
+from backend.routes.forums import forums_bp
+from backend.routes.notifications import notifications_bp
 
 def create_app():
     app = Flask(__name__)
@@ -39,6 +40,7 @@ def create_app():
 
 # Serve login.html at the root URL
     @app.route('/')
+    @app.route('/login.html')
     def serve_login():
         return render_template('login.html')
 
@@ -47,7 +49,6 @@ def create_app():
     @app.route('/index.html')
     def serve_index():
        return render_template('index.html')
-    
     # Error handlers
     @app.errorhandler(404)
     def not_found(error):

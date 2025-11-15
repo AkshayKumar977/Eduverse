@@ -375,7 +375,7 @@
 
 <script>
   // Configuration
-  const API_BASE_URL = 'http://localhost:3000/api';
+  const API_BASE_URL = 'http://localhost:3000/api/';
 
   // Switch between login and register tabs
   function switchTab(tab) {
@@ -425,61 +425,50 @@
     document.getElementById('successMessage').classList.remove('show');
   }
 
-  // Handle Login
-  async function handleLogin(event) {
-    event.preventDefault();
-    hideMessages();
 
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value;
+// Handle Login
+async function handleLogin(event) {
+  event.preventDefault();
+  hideMessages();
 
-    // Validation
-    if (!email || !password) {
-      showError('Please fill in all fields');
-      return;
-    }
+  const email = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPassword").value;
 
-    // Disable button and show loading
-    const loginBtn = document.getElementById('loginBtn');
-    const originalText = loginBtn.innerHTML;
-    loginBtn.disabled = true;
-    loginBtn.innerHTML = '<span class="loading"></span> Logging in...';
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
-      }
-
-      // Store token and user info
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-
-      showSuccess('Login successful! Redirecting...');
-
-      // Redirect to main portal after 1 second
-      setTimeout(() => {
-        window.location.href = 'index.html';
-      }, 1000);
-
-    } catch (error) {
-      console.error('Login error:', error);
-      showError(error.message || 'Invalid email or password');
-      
-      // Re-enable button
-      loginBtn.disabled = false;
-      loginBtn.innerHTML = originalText;
-    }
+  // Validation
+  if (!email || !password) {
+    showError("Please fill in all fields");
+    return;
   }
+
+  // Disable button and show loading
+  const loginBtn = document.getElementById("loginBtn");
+  const originalText = loginBtn.innerHTML;
+  loginBtn.disabled = true;
+  loginBtn.innerHTML = '<span class="loading"></span> Logging in...';
+
+  try {
+    const response = await fetch(API_BASE_URL + "auth/login", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({email, password}),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Login failed");
+
+    // **THIS IS WHERE TOKEN IS SAVED**
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
+
+    showSuccess("Login successful! Redirecting...");
+    setTimeout(() => window.location.href = "index.html", 1000);
+  } catch (error) {
+    console.error("Login error:", error);
+    showError(error.message || "Invalid email or password");
+  } finally {
+    loginBtn.disabled = false;
+    loginBtn.innerHTML = originalText;
+  }
+}
 
   // Handle Register
   async function handleRegister(event) {

@@ -28,7 +28,7 @@ class User(db.Model):
     
 class Material(db.Model):
     __tablename__ = 'materials'
-    id = db.Column(db.Integer,primary_keys = True)
+    id = db.Column(db.Integer,primary_key = True)
     title = db.Column(db.String(200),nullable = False)
     description = db.Column(db.Text)
     subject = db.Column(db.String(50))
@@ -83,8 +83,8 @@ class ForumComment(db.Model):
     thread_id = db.Column(db.Integer,db.ForeignKey('forum_threads.id'))
     author_id = db.Column(db.Integer,db.ForeignKey('users.id'))
     content = db.Column(db.Text)
-    created_id = db.Column(db.DateTime, default = datetime.utcnow)
-    author = db.relationship('User','comments')
+    created_at = db.Column(db.DateTime, default = datetime.utcnow)
+    author = db.relationship('User',backref = 'comments')
     def to_dict(self):
         return {
             'id': self.id,
@@ -99,7 +99,7 @@ class Notification(db.Model):
     title = db.Column(db.String(200))
     content = db.Column(db.Text)
     type = db.Column(db.String(50))
-    is_read = db.Column(db.Datetime,default = datetime.utcnow)
+    is_read = db.Column(db.DateTime,default = datetime.utcnow)
     def to_dict(self):
         return {
             'id': self.id,

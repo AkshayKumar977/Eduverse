@@ -1661,6 +1661,17 @@
       flex-wrap: wrap;
     }
   }
+  .sidebar__link--logout {
+  margin-top: auto;
+  border-top: 1px solid rgba(127, 219, 255, 0.2);
+  padding-top: 1rem;
+  color: #FF4136 !important;
+}
+.sidebar__link--logout:hover {
+  background: rgba(255, 65, 54, 0.1) !important;
+  border-left-color: #FF4136 !important;
+}
+
 </style>
 </head>
 <body>
@@ -1673,16 +1684,21 @@
 
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
-    <h2 class="sidebar__title">Student Portal</h2>
-    <nav class="sidebar__nav">
-      <a href="#" class="sidebar__link" data-section="dashboard">Dashboard</a>
-      <a href="#" class="sidebar__link active" data-section="mycourses">My Courses</a>
-      <a href="#" class="sidebar__link" data-section="materials">Study Materials</a>
-      <a href="#" class="sidebar__link" data-section="forums">Forums</a>
-      <a href="#" class="sidebar__link" data-section="contributions">My Contributions</a>
-      <a href="#" class="sidebar__link" data-section="profile">Profile</a>
-    </nav>
-  </aside>
+  <h2 class="sidebar__title">Student Portal</h2>
+  <nav class="sidebar__nav">
+    <a href="#" class="sidebar__link" data-section="dashboard">Dashboard</a>
+    <a href="#" class="sidebar__link active" data-section="mycourses">My Courses</a>
+    <a href="#" class="sidebar__link" data-section="materials">Study Materials</a>
+    <a href="#" class="sidebar__link" data-section="forums">Forums</a>
+    <a href="#" class="sidebar__link" data-section="contributions">My Contributions</a>
+    <a href="#" class="sidebar__link" data-section="profile">Profile</a>
+    <!-- Logout Button -->
+    <a href="#" class="sidebar__link sidebar__link--logout" onclick="logout(); return false;">
+      🚪 Logout
+    </a>
+  </nav>
+</aside>
+
 
   <!-- Main Content -->
   <main class="main-content" id="mainContent">
@@ -2353,6 +2369,7 @@
           <p class="profile-bio">Passionate about algorithms, machine learning, and building scalable systems.</p>
         </div>
       </div>
+      
 
       <div class="profile-stats">
         <div class="profile-stat-card">
@@ -2549,6 +2566,76 @@
 </div>
 
 <script>
+  // ===== AUTHENTICATION CONFIGURATION =====
+const API_BASE_URL = 'http://localhost:3000/api';
+
+// Logout function
+function logout() {
+  if (confirm('Are you sure you want to logout?')) {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = 'login.html';
+  }
+}
+
+// Helper function to get token
+function getToken() {
+  return localStorage.getItem('token');
+}
+
+// Helper function for API calls with authentication
+// Replace your fetchAPI function in index.html with this
+async function fetchAPI(endpoint, options = {}) {
+  const headers = {...options.headers};
+  const token = localStorage.getItem('token');
+  if (token) headers.Authorization = "Bearer " + token;
+  // Only add Content-Type if it's not a GET request
+  if ((!options.method || options.method.toUpperCase() !== "GET") && !headers['Content-Type']) {
+    headers["Content-Type"] = "application/json";
+  }
+  const response = await fetch(API_BASE_URL + endpoint, {...options, headers});
+  let data;
+  try {
+    data = await response.json();
+  } catch (e) {
+    data = {};
+  }
+  if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      alert("Session expired. Please login again.");
+      window.location.href = "login.html";
+      return;
+    }
+    throw new Error(data.error || "Request failed");
+  }
+  return data;
+}
+
+
+// Optional: Check if user is logged in (uncomment when backend is ready)
+
+window.addEventListener('DOMContentLoaded', () => {
+  const token = getToken();
+  if (!token) {
+    window.location.href = 'login.html';
+    return;
+  }
+  // Verify token with backend
+  fetchAPI('/auth/profile')
+    .then(user => {
+      console.log('Logged in as:', user.name);
+      // Update UI with user info if needed
+    })
+    .catch(() => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = 'login.html';
+    });
+});
+// ===== END AUTHENTICATION =====
+
   // Sample Data
   const materialsData = [
     {

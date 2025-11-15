@@ -2,10 +2,11 @@ from flask import Blueprint, request,jsonify,send_file
 from werkzeug.utils import secure_filename
 from flask_jwt_extended import get_jwt_identity
 import os
-from models import db,Material,User
-from utils.decoraters import token_required
-from config import Config
+from backend.models import db,Material,User
+from backend.utils.decorators import token_required
+from backend.config import Config
 from datetime import datetime
+from flask_jwt_extended import jwt_required, get_jwt_identity
 materials_bp = Blueprint('materials',__name__)
 def allowed_file(filename):
     return '.' in filename and \
@@ -30,7 +31,7 @@ def get_all_materials():
     except Exception as e:
         return jsonify({"error":str(e)}),500
 @materials_bp.route('/upload',methods = ['POST'])
-@token_required
+@jwt_required()
 def upload_material():
     try:
         user_id = get_jwt_identity()
@@ -69,7 +70,8 @@ def upload_material():
     except Exception as e:
         db.session.rollback()
         return jsonify({'error':str(e)}),500
-@materials_bp.route('/<int:material_id',methods=['DELETE'])
+@materials_bp.route('/<int:material_id>',methods=['DELETE'])
+@jwt_required()
 def delete_material(material_id):
     try:
         user_id = get_jwt_identity()
@@ -78,7 +80,7 @@ def delete_material(material_id):
             return jsonify({'error':'Material not found'}),404
         if material.uploaded_by != user_id:
             return jsonify({'error':'Unauthorized'}),403
-        if os.path.exist(material.file_path):
+        if os.path.exists(material.file_path):
             os.remove(material.file_path)
         db.session.delete(material)
         db.session.commit()
@@ -87,6 +89,7 @@ def delete_material(material_id):
         db.session.rollback()
         return jsonify({"error":str(e)}),500
 @materials_bp.route('/<int:material_id>/download',methods = ['POST'])
+@jwt_required()
 def downloaded_material(material_id):
     try:
         material = Material.query.get(material_id)
@@ -98,6 +101,7 @@ def downloaded_material(material_id):
         db.session.rollback()
         return jsonify({'error':str(e)}), 500
 @materials_bp.route('/<int:material_id>/file',methods = ['GET'])
+@jwt_required()
 def get_material_file(material_id):
     try:
         material = Material.query.get(material_id)
