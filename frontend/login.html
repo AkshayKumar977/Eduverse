@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Student Portal - Login</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap');
+  
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  body {
+    font-family: 'Roboto', sans-serif;
+    background: url('https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1350&q=80') no-repeat center center fixed;
+    background-size: cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: -1;
+  }
+
+  .auth-container {
+    background: rgba(20, 20, 30, 0.95);
+    border-radius: 16px;
+    padding: 3rem;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(127, 219, 255, 0.2);
+    backdrop-filter: blur(10px);
+  }
+
+  .auth-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .auth-title {
+    color: #7FDBFF;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .auth-subtitle {
+    color: #bbbbbb;
+    font-size: 0.95rem;
+  }
+
+  .auth-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .auth-tab {
+    flex: 1;
+    padding: 0.75rem;
+    background: transparent;
+    border: 1px solid rgba(127, 219, 255, 0.2);
+    border-radius: 8px;
+    color: #bbbbbb;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .auth-tab.active {
+    background: #0074D9;
+    color: white;
+    border-color: #0074D9;
+  }
+
+  .auth-tab:hover:not(.active) {
+    background: rgba(127, 219, 255, 0.1);
+    border-color: rgba(127, 219, 255, 0.5);
+  }
+
+  .auth-form {
+    display: none;
+  }
+
+  .auth-form.active {
+    display: block;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-label {
+    display: block;
+    color: #7FDBFF;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .form-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(127, 219, 255, 0.2);
+    border-radius: 8px;
+    padding: 0.875rem;
+    color: white;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+  }
+
+  .form-input:focus {
+    outline: none;
+    border-color: #7FDBFF;
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 0 3px rgba(127, 219, 255, 0.1);
+  }
+
+  .form-input::placeholder {
+    color: #888888;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .btn-submit {
+    width: 100%;
+    background: #2ECC40;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 1rem;
+  }
+
+  .btn-submit:hover {
+    background: #27a337;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(46, 204, 64, 0.3);
+  }
+
+  .btn-submit:active {
+    transform: translateY(0);
+  }
+
+  .btn-submit:disabled {
+    background: #666;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .error-message {
+    background: rgba(255, 65, 54, 0.1);
+    border: 1px solid #FF4136;
+    color: #FF4136;
+    padding: 0.75rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    display: none;
+  }
+
+  .error-message.show {
+    display: block;
+  }
+
+  .success-message {
+    background: rgba(46, 204, 64, 0.1);
+    border: 1px solid #2ECC40;
+    color: #2ECC40;
+    padding: 0.75rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    display: none;
+  }
+
+  .success-message.show {
+    display: block;
+  }
+
+  .loading {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .forgot-password {
+    text-align: center;
+    margin-top: 1rem;
+  }
+
+  .forgot-password a {
+    color: #7FDBFF;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+  }
+
+  .forgot-password a:hover {
+    color: #0074D9;
+  }
+
+  @media (max-width: 600px) {
+    .auth-container {
+      padding: 2rem 1.5rem;
+    }
+
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+
+    .auth-title {
+      font-size: 1.5rem;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="auth-container">
+  <div class="auth-header">
+    <h1 class="auth-title">Student Portal</h1>
+    <p class="auth-subtitle">Welcome! Please login or register to continue</p>
+  </div>
+
+  <!-- Tab Switcher -->
+  <div class="auth-tabs">
+    <button class="auth-tab active" onclick="switchTab('login')">Login</button>
+    <button class="auth-tab" onclick="switchTab('register')">Register</button>
+  </div>
+
+  <!-- Error/Success Messages -->
+  <div id="errorMessage" class="error-message"></div>
+  <div id="successMessage" class="success-message"></div>
+
+  <!-- Login Form -->
+  <form id="loginForm" class="auth-form active" onsubmit="handleLogin(event)">
+    <div class="form-group">
+      <label class="form-label">Email Address</label>
+      <input 
+        type="email" 
+        class="form-input" 
+        id="loginEmail" 
+        placeholder="Enter your email"
+        required
+      />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input 
+        type="password" 
+        class="form-input" 
+        id="loginPassword" 
+        placeholder="Enter your password"
+        required
+      />
+    </div>
+
+    <button type="submit" class="btn-submit" id="loginBtn">
+      Login
+    </button>
+
+    <div class="forgot-password">
+      <a href="#" onclick="alert('Contact admin to reset password')">Forgot Password?</a>
+    </div>
+  </form>
+
+  <!-- Register Form -->
+  <form id="registerForm" class="auth-form" onsubmit="handleRegister(event)">
+    <div class="form-group">
+      <label class="form-label">Full Name</label>
+      <input 
+        type="text" 
+        class="form-input" 
+        id="registerName" 
+        placeholder="Enter your full name"
+        required
+      />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Email Address</label>
+      <input 
+        type="email" 
+        class="form-input" 
+        id="registerEmail" 
+        placeholder="Enter your email"
+        required
+      />
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Student ID</label>
+        <input 
+          type="text" 
+          class="form-input" 
+          id="registerStudentId" 
+          placeholder="CS2024001"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Department</label>
+        <input 
+          type="text" 
+          class="form-input" 
+          id="registerDepartment" 
+          placeholder="Computer Science"
+          required
+        />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input 
+        type="password" 
+        class="form-input" 
+        id="registerPassword" 
+        placeholder="Create a password (min 6 characters)"
+        minlength="6"
+        required
+      />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Confirm Password</label>
+      <input 
+        type="password" 
+        class="form-input" 
+        id="registerConfirmPassword" 
+        placeholder="Confirm your password"
+        required
+      />
+    </div>
+
+    <button type="submit" class="btn-submit" id="registerBtn">
+      Create Account
+    </button>
+  </form>
+</div>
+
+<script>
+  // Configuration
+  const API_BASE_URL = 'http://localhost:3000/api';
+
+  // Switch between login and register tabs
+  function switchTab(tab) {
+    // Update tab buttons
+    document.querySelectorAll('.auth-tab').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+
+    // Update forms
+    document.querySelectorAll('.auth-form').forEach(form => {
+      form.classList.remove('active');
+    });
+    document.getElementById(tab + 'Form').classList.add('active');
+
+    // Clear messages
+    hideMessages();
+  }
+
+  // Show error message
+  function showError(message) {
+    const errorDiv = document.getElementById('errorMessage');
+    errorDiv.textContent = message;
+    errorDiv.classList.add('show');
+    
+    // Auto hide after 5 seconds
+    setTimeout(() => {
+      errorDiv.classList.remove('show');
+    }, 5000);
+  }
+
+  // Show success message
+  function showSuccess(message) {
+    const successDiv = document.getElementById('successMessage');
+    successDiv.textContent = message;
+    successDiv.classList.add('show');
+    
+    // Auto hide after 5 seconds
+    setTimeout(() => {
+      successDiv.classList.remove('show');
+    }, 5000);
+  }
+
+  // Hide all messages
+  function hideMessages() {
+    document.getElementById('errorMessage').classList.remove('show');
+    document.getElementById('successMessage').classList.remove('show');
+  }
+
+  // Handle Login
+  async function handleLogin(event) {
+    event.preventDefault();
+    hideMessages();
+
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+
+    // Validation
+    if (!email || !password) {
+      showError('Please fill in all fields');
+      return;
+    }
+
+    // Disable button and show loading
+    const loginBtn = document.getElementById('loginBtn');
+    const originalText = loginBtn.innerHTML;
+    loginBtn.disabled = true;
+    loginBtn.innerHTML = '<span class="loading"></span> Logging in...';
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Login failed');
+      }
+
+      // Store token and user info
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      showSuccess('Login successful! Redirecting...');
+
+      // Redirect to main portal after 1 second
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 1000);
+
+    } catch (error) {
+      console.error('Login error:', error);
+      showError(error.message || 'Invalid email or password');
+      
+      // Re-enable button
+      loginBtn.disabled = false;
+      loginBtn.innerHTML = originalText;
+    }
+  }
+
+  // Handle Register
+  async function handleRegister(event) {
+    event.preventDefault();
+    hideMessages();
+
+    const name = document.getElementById('registerName').value.trim();
+    const email = document.getElementById('registerEmail').value.trim();
+    const studentId = document.getElementById('registerStudentId').value.trim();
+    const department = document.getElementById('registerDepartment').value.trim();
+    const password = document.getElementById('registerPassword').value;
+    const confirmPassword = document.getElementById('registerConfirmPassword').value;
+
+    // Validation
+    if (!name || !email || !studentId || !department || !password || !confirmPassword) {
+      showError('Please fill in all fields');
+      return;
+    }
+
+    if (password.length < 6) {
+      showError('Password must be at least 6 characters long');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      showError('Passwords do not match');
+      return;
+    }
+
+    // Disable button and show loading
+    const registerBtn = document.getElementById('registerBtn');
+    const originalText = registerBtn.innerHTML;
+    registerBtn.disabled = true;
+    registerBtn.innerHTML = '<span class="loading"></span> Creating account...';
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          student_id: studentId,
+          department,
+          password
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Registration failed');
+      }
+
+      showSuccess('Registration successful! Please login with your credentials.');
+
+      // Clear form
+      document.getElementById('registerForm').reset();
+
+      // Switch to login tab after 2 seconds
+      setTimeout(() => {
+        document.querySelectorAll('.auth-tab')[0].click();
+      }, 2000);
+
+    } catch (error) {
+      console.error('Registration error:', error);
+      showError(error.message || 'Registration failed. Please try again.');
+    } finally {
+      // Re-enable button
+      registerBtn.disabled = false;
+      registerBtn.innerHTML = originalText;
+    }
+  }
+
+  // Check if user is already logged in
+  window.addEventListener('DOMContentLoaded', () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      // Verify token is valid
+      fetch(`${API_BASE_URL}/auth/profile`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(response => {
+        if (response.ok) {
+          // Token is valid, redirect to main portal
+          window.location.href = 'index.html';
+        } else {
+          // Token is invalid, clear it
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        }
+      })
+      .catch(() => {
+        // Error verifying token, clear it
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      });
+    }
+  });
+</script>
+</body>
+</html>

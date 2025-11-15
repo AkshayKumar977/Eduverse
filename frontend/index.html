@@ -1,0 +1,3232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Student Portal</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap');
+  
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  :root {
+    /* Color System */
+    --primary-color: #0074D9;
+    --primary-hover: #005fa3;
+    --accent-color: #7FDBFF;
+    --success-color: #2ECC40;
+    --warning-color: #FF851B;
+    --error-color: #FF4136;
+    --info-color: #39CCCC;
+    
+    /* Course Colors */
+    --course-ds: #FF6B6B;
+    --course-os: #4ECDC4;
+    --course-db: #45B7D1;
+    --course-cn: #96CEB4;
+    --course-ai: #FFEAA7;
+    --course-se: #DDA0DD;
+    
+    /* Background System */
+    --bg-primary: rgba(20, 20, 30, 0.95);
+    --bg-secondary: rgba(0, 0, 0, 0.7);
+    --bg-card: rgba(255, 255, 255, 0.1);
+    --bg-widget: rgba(255, 255, 255, 0.08);
+    --bg-overlay: rgba(0, 0, 0, 0.8);
+    
+    /* Text System */
+    --text-primary: #ffffff;
+    --text-secondary: #bbbbbb;
+    --text-muted: #888888;
+    
+    /* Border System */
+    --border-radius-sm: 6px;
+    --border-radius: 12px;
+    --border-radius-lg: 16px;
+    --border-color: rgba(127, 219, 255, 0.2);
+    --border-focus: rgba(127, 219, 255, 0.5);
+    
+    /* Spacing System */
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 32px;
+    --space-2xl: 48px;
+    
+    /* Shadow System */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --shadow-focus: 0 0 0 3px rgba(127, 219, 255, 0.1);
+    
+    /* Animation System */
+    --transition-fast: 0.15s ease;
+    --transition: 0.3s ease;
+    --transition-slow: 0.5s ease;
+  }
+  
+  body, html {
+    height: 100%;
+    font-family: 'Roboto', sans-serif;
+    background: url('https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1350&q=80') no-repeat center center fixed;
+    background-size: cover;
+    color: var(--text-primary);
+    overflow: hidden;
+  }
+
+  /* =============================================
+     LAYOUT COMPONENTS
+  ============================================= */
+
+  .app-container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    backdrop-filter: brightness(0.6);
+    position: fixed;
+    top: 0;
+    left: 0;
+  }
+
+  /* Sidebar Layout */
+  .sidebar {
+    background: var(--bg-primary);
+    width: 250px;
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-lg) 0;
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    z-index: 1000;
+    border-right: 1px solid var(--border-color);
+    transition: var(--transition);
+  }
+
+  .sidebar.collapsed {
+    transform: translateX(-100%);
+  }
+
+  .sidebar-toggle {
+    position: fixed;
+    top: var(--space-md);
+    left: var(--space-md);
+    z-index: 1001;
+    background: var(--primary-color);
+    border: none;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+  }
+
+  .main-content {
+    flex: 1;
+    background: var(--bg-secondary);
+    margin-left: 250px;
+    padding: var(--space-lg) var(--space-xl);
+    overflow-y: auto;
+    height: 100vh;
+    transition: var(--transition);
+  }
+
+  .main-content.expanded {
+    margin-left: 0;
+  }
+
+  /* Header with notifications */
+  .header-bar {
+    color: var(--accent-color);
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: var(--space-lg);
+    padding-bottom: var(--space-md);
+    border-bottom: 2px solid var(--accent-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+  }
+
+  .notification-bell {
+    position: relative;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: var(--space-sm);
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+  }
+
+  .notification-bell:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .notification-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: var(--error-color);
+    color: white;
+    font-size: 0.7rem;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Notifications Panel */
+  .notifications-panel {
+    position: fixed;
+    top: 0;
+    right: -400px;
+    width: 400px;
+    height: 100vh;
+    background: var(--bg-primary);
+    border-left: 1px solid var(--border-color);
+    z-index: 999;
+    transition: var(--transition);
+    padding: var(--space-xl);
+    overflow-y: auto;
+  }
+
+  .notifications-panel.active {
+    right: 0;
+  }
+
+  .notifications-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-lg);
+    padding-bottom: var(--space-md);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .notifications-title {
+    color: var(--accent-color);
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  .close-notifications {
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
+
+  /* Overlay for mobile */
+  .overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+    display: none;
+  }
+
+  .overlay.active {
+    display: block;
+  }
+
+  /* =============================================
+     DASHBOARD COMPONENTS (Previous Version)
+  ============================================= */
+
+  .grid {
+    display: grid;
+    gap: var(--space-lg);
+  }
+
+  .grid--2 {
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  }
+
+  .grid--3 {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+
+  .widget {
+    background: var(--bg-widget);
+    border-radius: var(--border-radius);
+    padding: var(--space-lg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    height: 100%;
+  }
+
+  .widget--compact {
+    padding: var(--space-md);
+  }
+
+  .widget--interactive {
+    cursor: pointer;
+    transition: var(--transition);
+  }
+
+  .widget--interactive:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--border-focus);
+  }
+
+  .widget__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-md);
+  }
+
+  .widget__title {
+    color: var(--accent-color);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .widget__icon {
+    width: 32px;
+    height: 32px;
+    background: var(--primary-color);
+    border-radius: var(--border-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+  }
+
+  .widget__content {
+    color: var(--text-primary);
+  }
+
+  .widget__footer {
+    margin-top: var(--space-md);
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+
+  .card {
+    background: var(--bg-card);
+    border-radius: var(--border-radius);
+    padding: var(--space-lg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .card--elevated {
+    box-shadow: var(--shadow-md);
+  }
+
+  .card--interactive {
+    cursor: pointer;
+  }
+
+  .card--interactive:hover {
+    border-color: var(--border-focus);
+  }
+
+  .card--bordered {
+    border-left: 4px solid var(--accent-color);
+  }
+
+  .card--success {
+    border-left-color: var(--success-color);
+  }
+
+  .card--warning {
+    border-left-color: var(--warning-color);
+  }
+
+  .card--error {
+    border-left-color: var(--error-color);
+  }
+
+  .card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-md);
+  }
+
+  .card__title {
+    color: var(--accent-color);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    flex: 1;
+  }
+
+  .card__subtitle {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin: var(--space-xs) 0 var(--space-md) 0;
+  }
+
+  .card__content {
+    color: var(--text-primary);
+  }
+
+  .card__footer {
+    margin-top: var(--space-md);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-sm);
+  }
+
+  .card__badge {
+    background: var(--primary-color);
+    color: white;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .card__badge--new {
+    background: var(--success-color);
+  }
+
+  .card__badge--popular {
+    background: var(--warning-color);
+  }
+
+  .list {
+    list-style: none;
+  }
+
+  .list-item {
+    padding: var(--space-md);
+    border-bottom: 1px solid var(--border-color);
+    transition: var(--transition-fast);
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+  }
+
+  .list-item:last-child {
+    border-bottom: none;
+  }
+
+  .list-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .list-item--interactive {
+    cursor: pointer;
+  }
+
+  .list-item--interactive:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .list-item--selected {
+    background: rgba(127, 219, 255, 0.1);
+    border-left: 3px solid var(--accent-color);
+  }
+
+  .list-item__icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-color);
+  }
+
+  .list-item__content {
+    flex: 1;
+  }
+
+  .list-item__title {
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-bottom: var(--space-xs);
+  }
+
+  .list-item__subtitle {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+  }
+
+  .list-item__meta {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    text-align: right;
+  }
+
+  .new-materials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-md);
+    margin-top: var(--space-md);
+  }
+
+  .material-preview {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius-sm);
+    padding: var(--space-md);
+    text-align: center;
+    transition: var(--transition);
+    border: 1px solid transparent;
+  }
+
+  .material-preview:hover {
+    border-color: var(--border-focus);
+    transform: translateY(-1px);
+  }
+
+  .material-preview__icon {
+    font-size: 2rem;
+    margin-bottom: var(--space-sm);
+    opacity: 0.8;
+  }
+
+  .material-preview__title {
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: var(--space-xs);
+  }
+
+  .material-preview__subject {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+  }
+
+  .recommendation-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--space-md);
+    margin-top: var(--space-md);
+  }
+
+  .recommendation-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius-sm);
+    padding: var(--space-md);
+    text-align: center;
+    transition: var(--transition);
+    border: 1px solid transparent;
+  }
+
+  .recommendation-item:hover {
+    border-color: var(--border-focus);
+    transform: translateY(-1px);
+  }
+
+  .recommendation-item__icon {
+    font-size: 1.5rem;
+    margin-bottom: var(--space-sm);
+    opacity: 0.8;
+  }
+
+  .recommendation-item__title {
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  .placeholder-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-xl);
+    text-align: center;
+    color: var(--text-secondary);
+  }
+
+  .placeholder-content__icon {
+    font-size: 3rem;
+    margin-bottom: var(--space-md);
+    opacity: 0.5;
+  }
+
+  .placeholder-content__text {
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+
+  /* =============================================
+     MY COURSES COMPONENTS (Previous Version)
+  ============================================= */
+
+  .course-card {
+    background: var(--bg-card);
+    border-radius: var(--border-radius);
+    padding: var(--space-lg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .course-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .course-card--data-structures {
+    border-left: 4px solid var(--course-ds);
+  }
+
+  .course-card--operating-systems {
+    border-left: 4px solid var(--course-os);
+  }
+
+  .course-card--database-systems {
+    border-left: 4px solid var(--course-db);
+  }
+
+  .course-card--computer-networks {
+    border-left: 4px solid var(--course-cn);
+  }
+
+  .course-card--artificial-intelligence {
+    border-left: 4px solid var(--course-ai);
+  }
+
+  .course-card--software-engineering {
+    border-left: 4px solid var(--course-se);
+  }
+
+  .course-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-md);
+  }
+
+  .course-card__icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-right: var(--space-md);
+    flex-shrink: 0;
+  }
+
+  .course-card__icon--data-structures {
+    background: var(--course-ds);
+    color: white;
+  }
+
+  .course-card__icon--operating-systems {
+    background: var(--course-os);
+    color: white;
+  }
+
+  .course-card__icon--database-systems {
+    background: var(--course-db);
+    color: white;
+  }
+
+  .course-card__icon--computer-networks {
+    background: var(--course-cn);
+    color: var(--bg-primary);
+  }
+
+  .course-card__icon--artificial-intelligence {
+    background: var(--course-ai);
+    color: var(--bg-primary);
+  }
+
+  .course-card__icon--software-engineering {
+    background: var(--course-se);
+    color: white;
+  }
+
+  .course-card__info {
+    flex: 1;
+  }
+
+  .course-card__title {
+    color: var(--accent-color);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0 0 var(--space-xs) 0;
+  }
+
+  .course-card__instructor {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: var(--space-sm);
+  }
+
+  .course-card__badge {
+    background: var(--primary-color);
+    color: white;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .course-card__badge--completed {
+    background: var(--success-color);
+  }
+
+  .course-card__badge--in-progress {
+    background: var(--warning-color);
+  }
+
+  .course-card__badge--upcoming {
+    background: var(--info-color);
+  }
+
+  .course-card__content {
+    margin-bottom: var(--space-md);
+  }
+
+  .course-card__description {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: var(--space-md);
+  }
+
+  .course-card__stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+  }
+
+  .course-stat {
+    text-align: center;
+    padding: var(--space-sm);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius-sm);
+  }
+
+  .course-stat__value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--accent-color);
+  }
+
+  .course-stat__label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: var(--space-xs);
+  }
+
+  .course-card__progress {
+    margin-bottom: var(--space-md);
+  }
+
+  .progress {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--border-radius);
+    height: 8px;
+    overflow: hidden;
+    margin: var(--space-sm) 0;
+  }
+
+  .progress__bar {
+    height: 100%;
+    background: var(--accent-color);
+    transition: width 0.5s ease;
+    border-radius: var(--border-radius);
+  }
+
+  .progress__bar--data-structures {
+    background: var(--course-ds);
+  }
+
+  .progress__bar--operating-systems {
+    background: var(--course-os);
+  }
+
+  .progress__bar--database-systems {
+    background: var(--course-db);
+  }
+
+  .progress__bar--computer-networks {
+    background: var(--course-cn);
+  }
+
+  .progress__bar--artificial-intelligence {
+    background: var(--course-ai);
+  }
+
+  .progress__bar--software-engineering {
+    background: var(--course-se);
+  }
+
+  .progress__info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: var(--space-xs);
+  }
+
+  .course-card__footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  /* =============================================
+     STUDY MATERIALS COMPONENTS
+  ============================================= */
+
+  .materials-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-lg);
+    flex-wrap: wrap;
+    gap: var(--space-md);
+  }
+
+  .filters-container {
+    display: flex;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+  }
+
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .filter-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+  }
+
+  .filter-select {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    padding: var(--space-sm);
+    color: var(--text-primary);
+    min-width: 150px;
+  }
+
+  .search-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: var(--space-sm) var(--space-md);
+    color: var(--text-primary);
+    width: 300px;
+    max-width: 100%;
+  }
+
+  .materials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-lg);
+  }
+
+  .material-card {
+    background: var(--bg-card);
+    border-radius: var(--border-radius);
+    padding: var(--space-lg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    transition: var(--transition);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .material-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--border-focus);
+  }
+
+  .material-header {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: var(--space-md);
+  }
+
+  .material-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-right: var(--space-md);
+    flex-shrink: 0;
+  }
+
+  .material-icon--pdf {
+    background: #FF6B6B;
+    color: white;
+  }
+
+  .material-icon--doc {
+    background: #45B7D1;
+    color: white;
+  }
+
+  .material-icon--ppt {
+    background: #FFEAA7;
+    color: var(--bg-primary);
+  }
+
+  .material-icon--zip {
+    background: #96CEB4;
+    color: var(--bg-primary);
+  }
+
+  .material-info {
+    flex: 1;
+  }
+
+  .material-title {
+    color: var(--accent-color);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: var(--space-xs);
+  }
+
+  .material-meta {
+    display: flex;
+    gap: var(--space-md);
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+
+  .material-description {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: var(--space-md);
+    flex: 1;
+  }
+
+  .material-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+  }
+
+  .material-size {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  /* =============================================
+     FORUMS COMPONENTS
+  ============================================= */
+
+  .forums-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-lg);
+    flex-wrap: wrap;
+    gap: var(--space-md);
+  }
+
+  .threads-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .thread-card {
+    background: var(--bg-card);
+    border-radius: var(--border-radius);
+    padding: var(--space-lg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    transition: var(--transition);
+  }
+
+  .thread-card:hover {
+    border-color: var(--border-focus);
+    transform: translateY(-2px);
+  }
+
+  .thread-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-md);
+  }
+
+  .thread-title {
+    color: var(--accent-color);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: var(--space-xs);
+  }
+
+  .thread-author {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+  }
+
+  .thread-stats {
+    display: flex;
+    gap: var(--space-md);
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+
+  .thread-content {
+    color: var(--text-primary);
+    line-height: 1.5;
+    margin-bottom: var(--space-md);
+  }
+
+  .thread-tags {
+    display: flex;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-md);
+  }
+
+  .thread-tag {
+    background: rgba(127, 219, 255, 0.2);
+    color: var(--accent-color);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.8rem;
+  }
+
+  .thread-actions {
+    display: flex;
+    gap: var(--space-md);
+    border-top: 1px solid var(--border-color);
+    padding-top: var(--space-md);
+  }
+
+  .thread-action {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: var(--transition);
+  }
+
+  .thread-action:hover {
+    color: var(--accent-color);
+  }
+
+  .comments-section {
+    margin-top: var(--space-lg);
+    border-top: 1px solid var(--border-color);
+    padding-top: var(--space-lg);
+  }
+
+  .comment {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius);
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+
+  .comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-sm);
+  }
+
+  .comment-author {
+    font-weight: 600;
+    color: var(--accent-color);
+  }
+
+  .comment-time {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+
+  .comment-content {
+    color: var(--text-primary);
+    line-height: 1.5;
+  }
+
+  /* =============================================
+     PROFILE COMPONENTS
+  ============================================= */
+
+  .profile-header {
+    background: var(--bg-card);
+    border-radius: var(--border-radius);
+    padding: var(--space-xl);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    margin-bottom: var(--space-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+  }
+
+  .profile-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .profile-info {
+    flex: 1;
+  }
+
+  .profile-name {
+    color: var(--accent-color);
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: var(--space-xs);
+  }
+
+  .profile-role {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin-bottom: var(--space-md);
+  }
+
+  .profile-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-lg);
+    margin-bottom: var(--space-xl);
+  }
+
+  .profile-stat-card {
+    background: var(--bg-card);
+    border-radius: var(--border-radius);
+    padding: var(--space-lg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    text-align: center;
+    transition: var(--transition);
+  }
+
+  .profile-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent-color);
+    margin-bottom: var(--space-xs);
+  }
+
+  .stat-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+  }
+
+  .profile-form {
+    background: var(--bg-card);
+    border-radius: var(--border-radius);
+    padding: var(--space-xl);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+  }
+
+  .form-group {
+    margin-bottom: var(--space-lg);
+  }
+
+  .form-label {
+    display: block;
+    color: var(--accent-color);
+    font-weight: 600;
+    margin-bottom: var(--space-sm);
+  }
+
+  .form-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    padding: var(--space-md);
+    color: var(--text-primary);
+    font-size: 1rem;
+  }
+
+  .form-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  /* =============================================
+     AI RECOMMENDER COMPONENTS
+  ============================================= */
+
+  .ai-recommender {
+    background: var(--bg-card);
+    border-radius: var(--border-radius);
+    padding: var(--space-lg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    margin-bottom: var(--space-lg);
+  }
+
+  .recommender-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-lg);
+    flex-wrap: wrap;
+    gap: var(--space-md);
+  }
+
+  .recommender-controls {
+    display: flex;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+  }
+
+  .recommender-results {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-lg);
+  }
+
+  .recommendation-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius);
+    padding: var(--space-lg);
+    border: 1px solid var(--border-color);
+    transition: var(--transition);
+  }
+
+  .recommendation-card:hover {
+    border-color: var(--border-focus);
+    transform: translateY(-2px);
+  }
+
+  .recommendation-title {
+    color: var(--accent-color);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: var(--space-sm);
+  }
+
+  .recommendation-description {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: var(--space-md);
+  }
+
+  .recommendation-tags {
+    display: flex;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+  }
+
+  .recommendation-tag {
+    background: rgba(127, 219, 255, 0.2);
+    color: var(--accent-color);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.8rem;
+  }
+
+  /* =============================================
+     BUTTON COMPONENT SYSTEM
+  ============================================= */
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    font-weight: 500;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: var(--transition);
+    text-decoration: none;
+    justify-content: center;
+  }
+
+  .btn--primary {
+    background: var(--primary-color);
+    color: white;
+  }
+
+  .btn--primary:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+  }
+
+  .btn--accent {
+    background: var(--accent-color);
+    color: var(--bg-primary);
+  }
+
+  .btn--success {
+    background: var(--success-color);
+    color: white;
+  }
+
+  .btn--success:hover {
+    background: #27a337;
+    transform: translateY(-1px);
+  }
+
+  .btn--error {
+    background: var(--error-color);
+    color: white;
+  }
+
+  .btn--error:hover {
+    background: #d92d23;
+    transform: translateY(-1px);
+  }
+
+  .btn--outline {
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+  }
+
+  .btn--outline:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .btn--sm {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: 0.8rem;
+  }
+
+  .btn--lg {
+    padding: var(--space-md) var(--space-lg);
+    font-size: 1rem;
+  }
+
+  /* =============================================
+     APPLICATION SPECIFIC STYLES
+  ============================================= */
+
+  .sidebar__title {
+    color: var(--accent-color);
+    text-align: center;
+    margin-bottom: var(--space-xl);
+    font-weight: 700;
+    font-size: 1.5rem;
+    padding: 0 var(--space-lg);
+  }
+
+  .sidebar__nav {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar__link {
+    display: flex;
+    align-items: center;
+    padding: var(--space-md) var(--space-lg);
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: 500;
+    border-left: 4px solid transparent;
+    transition: var(--transition);
+    font-size: 0.95rem;
+  }
+
+  .sidebar__link.active,
+  .sidebar__link:hover {
+    background: var(--primary-color);
+    color: var(--text-primary);
+    border-left: 4px solid var(--accent-color);
+  }
+
+  /* Section Management */
+  .section {
+    display: none;
+    animation: fadeIn 0.5s ease;
+  }
+
+  .section.active-section {
+    display: block;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Modal System */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-overlay);
+    z-index: 1000;
+    display: none;
+    backdrop-filter: blur(5px);
+  }
+
+  .modal-overlay.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-lg);
+  }
+
+  .modal {
+    background: var(--bg-primary);
+    border-radius: var(--border-radius-lg);
+    padding: var(--space-xl);
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+    border: 2px solid var(--border-focus);
+    animation: modalSlideIn 0.3s ease;
+  }
+
+  @keyframes modalSlideIn {
+    from {
+      opacity: 0;
+      transform: scale(0.9) translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  .modal__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-lg);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: var(--space-md);
+  }
+
+  .modal__title {
+    color: var(--accent-color);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+    flex: 1;
+  }
+
+  .modal__close {
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: var(--space-xs);
+    border-radius: var(--border-radius-sm);
+    transition: var(--transition);
+  }
+
+  .modal__close:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .modal__content {
+    color: var(--text-primary);
+  }
+
+  .modal__section {
+    margin-bottom: var(--space-lg);
+  }
+
+  .modal__section-title {
+    color: var(--accent-color);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: var(--space-md);
+  }
+
+  .modal__stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+  }
+
+  .modal-stat {
+    background: var(--bg-card);
+    padding: var(--space-md);
+    border-radius: var(--border-radius);
+    text-align: center;
+  }
+
+  .modal-stat__value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--accent-color);
+    margin-bottom: var(--space-xs);
+  }
+
+  .modal-stat__label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+
+  .modal__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-sm);
+    margin-top: var(--space-lg);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--border-color);
+  }
+
+  /* =============================================
+     RESPONSIVE DESIGN
+  ============================================= */
+
+  @media (max-width: 1024px) {
+    .materials-grid,
+    .recommender-results,
+    .grid--2 {
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+  }
+
+  @media (max-width: 768px) {
+    .sidebar-toggle {
+      display: flex;
+    }
+
+    .sidebar {
+      transform: translateX(-100%);
+    }
+
+    .sidebar.active {
+      transform: translateX(0);
+    }
+
+    .main-content {
+      margin-left: 0;
+      padding: var(--space-md);
+    }
+
+    .header-bar {
+      font-size: 1.5rem;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-md);
+    }
+
+    .header-actions {
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .materials-header,
+    .forums-header,
+    .recommender-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .filters-container,
+    .recommender-controls {
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .search-box {
+      width: 100%;
+    }
+
+    .profile-header {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .profile-stats {
+      grid-template-columns: 1fr;
+    }
+
+    .materials-grid,
+    .recommender-results,
+    .grid--2 {
+      grid-template-columns: 1fr;
+    }
+
+    .course-card__stats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .notifications-panel {
+      width: 100%;
+      right: -100%;
+    }
+
+    .modal {
+      width: 95%;
+      padding: var(--space-lg);
+    }
+
+    .modal__stats {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .course-card__stats {
+      grid-template-columns: 1fr;
+    }
+
+    .course-card__footer {
+      flex-direction: column;
+    }
+
+    .btn {
+      width: 100%;
+    }
+
+    .filters-container {
+      flex-direction: column;
+    }
+
+    .filter-select {
+      min-width: 100%;
+    }
+
+    .material-footer {
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    .thread-stats {
+      flex-wrap: wrap;
+    }
+
+    .thread-actions {
+      flex-wrap: wrap;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="app-container">
+  <!-- Mobile Sidebar Toggle -->
+  <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+  
+  <!-- Overlay for Mobile -->
+  <div class="overlay" id="overlay"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <h2 class="sidebar__title">Student Portal</h2>
+    <nav class="sidebar__nav">
+      <a href="#" class="sidebar__link" data-section="dashboard">Dashboard</a>
+      <a href="#" class="sidebar__link active" data-section="mycourses">My Courses</a>
+      <a href="#" class="sidebar__link" data-section="materials">Study Materials</a>
+      <a href="#" class="sidebar__link" data-section="forums">Forums</a>
+      <a href="#" class="sidebar__link" data-section="contributions">My Contributions</a>
+      <a href="#" class="sidebar__link" data-section="profile">Profile</a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content" id="mainContent">
+    <!-- Dashboard Section -->
+    <section id="dashboard" class="section">
+      <div class="header-bar">
+        <h1 class="header-bar__title">Dashboard</h1>
+        <div class="header-actions">
+          <span class="header-bar__subtitle">Welcome back, John!</span>
+          <button class="notification-bell" id="notificationBell">
+            🔔
+            <span class="notification-badge">3</span>
+          </button>
+        </div>
+      </div>
+      
+      <div class="grid grid--2">
+        <!-- Recent Activity Widget -->
+        <div class="widget widget--interactive">
+          <div class="widget__header">
+            <h3 class="widget__title">Recent Activity</h3>
+            <div class="widget__icon">📚</div>
+          </div>
+          <div class="widget__content">
+            <ul class="list">
+              <li class="list-item list-item--interactive">
+                <div class="list-item__icon">✓</div>
+                <div class="list-item__content">
+                  <div class="list-item__title">Completed Assignment</div>
+                  <div class="list-item__subtitle">Data Structures - Linked Lists</div>
+                </div>
+                <div class="list-item__meta">2h ago</div>
+              </li>
+              <li class="list-item list-item--interactive">
+                <div class="list-item__icon">📖</div>
+                <div class="list-item__content">
+                  <div class="list-item__title">Viewed Material</div>
+                  <div class="list-item__subtitle">Operating Systems Notes</div>
+                </div>
+                <div class="list-item__meta">1d ago</div>
+              </li>
+              <li class="list-item list-item--interactive">
+                <div class="list-item__icon">💬</div>
+                <div class="list-item__content">
+                  <div class="list-item__title">Posted in Forums</div>
+                  <div class="list-item__subtitle">Help with recursion problem</div>
+                </div>
+                <div class="list-item__meta">2d ago</div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Notifications Widget -->
+        <div class="widget">
+          <div class="widget__header">
+            <h3 class="widget__title">Notifications</h3>
+            <div class="widget__icon">🔔</div>
+          </div>
+          <div class="widget__content">
+            <ul class="list">
+              <li class="list-item">
+                <div class="list-item__content">
+                  <div class="list-item__title">New Assignment Posted</div>
+                  <div class="list-item__subtitle">Database Systems - Due in 3 days</div>
+                </div>
+              </li>
+              <li class="list-item">
+                <div class="list-item__content">
+                  <div class="list-item__title">Course Update</div>
+                  <div class="list-item__subtitle">New materials available for OS</div>
+                </div>
+              </li>
+              <li class="list-item">
+                <div class="list-item__content">
+                  <div class="list-item__title">System Maintenance</div>
+                  <div class="list-item__subtitle">Scheduled for Saturday 2-4 AM</div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- New Materials Card -->
+        <div class="card card--bordered card--interactive">
+          <div class="card__header">
+            <h3 class="card__title">New Materials</h3>
+            <span class="card__badge card__badge--new">Just Added</span>
+          </div>
+          <div class="card__content">
+            <p class="card__subtitle">Fresh content added this week</p>
+            <div class="new-materials-grid">
+              <div class="material-preview">
+                <div class="material-preview__icon">📊</div>
+                <div class="material-preview__title">Advanced Algorithms</div>
+                <div class="material-preview__subject">Data Structures</div>
+              </div>
+              <div class="material-preview">
+                <div class="material-preview__icon">🖥️</div>
+                <div class="material-preview__title">Virtual Memory</div>
+                <div class="material-preview__subject">Operating Systems</div>
+              </div>
+              <div class="material-preview">
+                <div class="material-preview__icon">🗃️</div>
+                <div class="material-preview__title">SQL Optimization</div>
+                <div class="material-preview__subject">Database Systems</div>
+              </div>
+              <div class="material-preview">
+                <div class="material-preview__icon">🌐</div>
+                <div class="material-preview__title">Network Protocols</div>
+                <div class="material-preview__subject">Computer Networks</div>
+              </div>
+            </div>
+          </div>
+          <div class="card__footer">
+            <button class="btn btn--outline btn--sm">View All</button>
+            <button class="btn btn--primary btn--sm">Explore</button>
+          </div>
+        </div>
+
+        <!-- Recommended for You Widget -->
+        <div class="widget">
+          <div class="widget__header">
+            <h3 class="widget__title">Recommended for You</h3>
+            <div class="widget__icon">🎯</div>
+          </div>
+          <div class="widget__content">
+            <p style="color: var(--text-secondary); margin-bottom: var(--space-md);">
+              Based on your learning patterns and course progress
+            </p>
+            <div class="recommendation-grid">
+              <div class="recommendation-item">
+                <div class="recommendation-item__icon">📈</div>
+                <div class="recommendation-item__title">Dynamic Programming</div>
+              </div>
+              <div class="recommendation-item">
+                <div class="recommendation-item__icon">🔒</div>
+                <div class="recommendation-item__title">Security Basics</div>
+              </div>
+              <div class="recommendation-item">
+                <div class="recommendation-item__icon">🎨</div>
+                <div class="recommendation-item__title">UI/UX Design</div>
+              </div>
+              <div class="recommendation-item">
+                <div class="recommendation-item__icon">🤖</div>
+                <div class="recommendation-item__title">ML Fundamentals</div>
+              </div>
+            </div>
+          </div>
+          <div class="widget__footer">
+            <button class="btn btn--outline btn--sm" style="width: 100%;">See More Recommendations</button>
+          </div>
+        </div>
+
+        <!-- Recently Viewed Widget -->
+        <div class="widget">
+          <div class="widget__header">
+            <h3 class="widget__title">Recently Viewed</h3>
+            <div class="widget__icon">🕒</div>
+          </div>
+          <div class="widget__content">
+            <div class="placeholder-content">
+              <div class="placeholder-content__icon">📚</div>
+              <div class="placeholder-content__text">
+                Your recently viewed materials will appear here.<br>
+                Start exploring courses to build your history.
+              </div>
+            </div>
+          </div>
+          <div class="widget__footer">
+            <button class="btn btn--outline btn--sm" style="width: 100%;">Clear History</button>
+          </div>
+        </div>
+
+        <!-- Announcements Widget -->
+        <div class="card card--bordered card--warning">
+          <div class="card__header">
+            <h3 class="card__title">Announcements</h3>
+            <span class="card__badge card__badge--popular">Important</span>
+          </div>
+          <div class="card__content">
+            <ul class="list">
+              <li class="list-item">
+                <div class="list-item__content">
+                  <div class="list-item__title">Midterm Schedule Released</div>
+                  <div class="list-item__subtitle">Check your course pages for updated exam dates and locations</div>
+                </div>
+                <div class="list-item__meta">Today</div>
+              </li>
+              <li class="list-item">
+                <div class="list-item__content">
+                  <div class="list-item__title">Library Hours Extended</div>
+                  <div class="list-item__subtitle">Main library now open until 11 PM during exam season</div>
+                </div>
+                <div class="list-item__meta">2 days ago</div>
+              </li>
+              <li class="list-item">
+                <div class="list-item__content">
+                  <div class="list-item__title">Career Fair Registration</div>
+                  <div class="list-item__subtitle">Sign up for the annual tech career fair by Friday</div>
+                </div>
+                <div class="list-item__meta">1 week ago</div>
+              </li>
+            </ul>
+          </div>
+          <div class="card__footer">
+            <button class="btn btn--outline btn--sm">View All</button>
+            <button class="btn btn--primary btn--sm">Mark as Read</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- My Courses Section -->
+    <section id="mycourses" class="section active-section">
+      <div class="header-bar">
+        <h1 class="header-bar__title">My Courses</h1>
+        <div class="header-actions">
+          <span class="header-bar__subtitle">6 Courses Enrolled</span>
+          <button class="notification-bell">
+            🔔
+            <span class="notification-badge">3</span>
+          </button>
+        </div>
+      </div>
+      
+      <div class="grid grid--2">
+        <!-- Data Structures Course -->
+        <div class="course-card course-card--data-structures">
+          <div class="course-card__header">
+            <div class="course-card__icon course-card__icon--data-structures">📊</div>
+            <div class="course-card__info">
+              <h3 class="course-card__title">Data Structures & Algorithms</h3>
+              <div class="course-card__instructor">Prof. Sarah Chen</div>
+            </div>
+            <span class="course-card__badge course-card__badge--in-progress">In Progress</span>
+          </div>
+          
+          <div class="course-card__content">
+            <p class="course-card__description">
+              Master fundamental data structures including arrays, linked lists, trees, and graphs. 
+              Learn algorithm analysis and complexity theory with practical implementations.
+            </p>
+            
+            <div class="course-card__progress">
+              <div class="progress">
+                <div class="progress__bar progress__bar--data-structures" style="width: 65%"></div>
+              </div>
+              <div class="progress__info">
+                <span>Progress</span>
+                <span>65% Complete</span>
+              </div>
+            </div>
+            
+            <div class="course-card__stats">
+              <div class="course-stat">
+                <div class="course-stat__value">8/12</div>
+                <div class="course-stat__label">Modules</div>
+              </div>
+              <div class="course-stat">
+                <div class="course-stat__value">15</div>
+                <div class="course-stat__label">Assignments</div>
+              </div>
+              <div class="course-stat">
+                <div class="course-stat__value">A-</div>
+                <div class="course-stat__label">Current Grade</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="course-card__footer">
+            <button class="btn btn--outline btn--sm" onclick="openCourseModal('data-structures')">
+              View Details
+            </button>
+            <button class="btn btn--primary btn--sm">
+              Continue Learning
+            </button>
+          </div>
+        </div>
+
+        <!-- Operating Systems Course -->
+        <div class="course-card course-card--operating-systems">
+          <div class="course-card__header">
+            <div class="course-card__icon course-card__icon--operating-systems">🖥️</div>
+            <div class="course-card__info">
+              <h3 class="course-card__title">Operating Systems</h3>
+              <div class="course-card__instructor">Dr. Michael Rodriguez</div>
+            </div>
+            <span class="course-card__badge course-card__badge--in-progress">In Progress</span>
+          </div>
+          
+          <div class="course-card__content">
+            <p class="course-card__description">
+              Explore process management, memory allocation, file systems, and virtualization. 
+              Hands-on experience with Linux kernel modules and system programming.
+            </p>
+            
+            <div class="course-card__progress">
+              <div class="progress">
+                <div class="progress__bar progress__bar--operating-systems" style="width: 40%"></div>
+              </div>
+              <div class="progress__info">
+                <span>Progress</span>
+                <span>40% Complete</span>
+              </div>
+            </div>
+            
+            <div class="course-card__stats">
+              <div class="course-stat">
+                <div class="course-stat__value">5/14</div>
+                <div class="course-stat__label">Modules</div>
+              </div>
+              <div class="course-stat">
+                <div class="course-stat__value">8</div>
+                <div class="course-stat__label">Assignments</div>
+              </div>
+              <div class="course-stat">
+                <div class="course-stat__value">B+</div>
+                <div class="course-stat__label">Current Grade</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="course-card__footer">
+            <button class="btn btn--outline btn--sm" onclick="openCourseModal('operating-systems')">
+              View Details
+            </button>
+            <button class="btn btn--primary btn--sm">
+              Continue Learning
+            </button>
+          </div>
+        </div>
+
+        <!-- Database Systems Course -->
+        <div class="course-card course-card--database-systems">
+          <div class="course-card__header">
+            <div class="course-card__icon course-card__icon--database-systems">🗃️</div>
+            <div class="course-card__info">
+              <h3 class="course-card__title">Database Systems</h3>
+              <div class="course-card__instructor">Prof. Jennifer Wang</div>
+            </div>
+            <span class="course-card__badge course-card__badge--completed">Completed</span>
+          </div>
+          
+          <div class="course-card__content">
+            <p class="course-card__description">
+              Comprehensive coverage of SQL, database design, normalization, and transaction processing. 
+              Includes NoSQL databases and distributed systems concepts.
+            </p>
+            
+            <div class="course-card__progress">
+              <div class="progress">
+                <div class="progress__bar progress__bar--database-systems" style="width: 100%"></div>
+              </div>
+              <div class="progress__info">
+                <span>Progress</span>
+                <span>100% Complete</span>
+              </div>
+            </div>
+            
+            <div class="course-card__stats">
+              <div class="course-stat">
+                <div class="course-stat__value">12/12</div>
+                <div class="course-stat__label">Modules</div>
+              </div>
+              <div class="course-stat">
+                <div class="course-stat__value">20</div>
+                <div class="course-stat__label">Assignments</div>
+              </div>
+              <div class="course-stat">
+                <div class="course-stat__value">A</div>
+                <div class="course-stat__label">Final Grade</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="course-card__footer">
+            <button class="btn btn--outline btn--sm" onclick="openCourseModal('database-systems')">
+              View Details
+            </button>
+            <button class="btn btn--primary btn--sm">
+              Review Course
+            </button>
+          </div>
+        </div>
+
+        <!-- Computer Networks Course -->
+        <div class="course-card course-card--computer-networks">
+          <div class="course-card__header">
+            <div class="course-card__icon course-card__icon--computer-networks">🌐</div>
+            <div class="course-card__info">
+              <h3 class="course-card__title">Computer Networks</h3>
+              <div class="course-card__instructor">Dr. Robert Kim</div>
+            </div>
+            <span class="course-card__badge course-card__badge--upcoming">Starting Soon</span>
+          </div>
+          
+          <div class="course-card__content">
+            <p class="course-card__description">
+              Learn network protocols, TCP/IP stack, routing algorithms, and network security. 
+              Practical labs with packet analysis and network configuration.
+            </p>
+            
+            <div class="course-card__progress">
+              <div class="progress">
+                <div class="progress__bar progress__bar--computer-networks" style="width: 0%"></div>
+              </div>
+              <div class="progress__info">
+                <span>Progress</span>
+                <span>Starts Jan 15</span>
+              </div>
+            </div>
+            
+            <div class="course-card__stats">
+              <div class="course-stat">
+                <div class="course-stat__value">0/10</div>
+                <div class="course-stat__label">Modules</div>
+              </div>
+              <div class="course-stat">
+                <div class="course-stat__value">0</div>
+                <div class="course-stat__label">Assignments</div>
+              </div>
+              <div class="course-stat">
+                <div class="course-stat__value">-</div>
+                <div class="course-stat__label">Current Grade</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="course-card__footer">
+            <button class="btn btn--outline btn--sm" onclick="openCourseModal('computer-networks')">
+              View Details
+            </button>
+            <button class="btn btn--primary btn--sm" disabled>
+              Enroll Now
+            </button>
+          </div>
+        </div>
+
+        <!-- Artificial Intelligence Course -->
+        <div class="course-card course-card--artificial-intelligence">
+          <div class="course-card__header">
+            <div class="course-card__icon course-card__icon--artificial-intelligence">🤖</div>
+            <div class="course-card__info">
+              <h3 class="course-card__title">Artificial Intelligence</h3>
+              <div class="course-card__instructor">Dr. Emily Zhang</div>
+            </div>
+            <span class="course-card__badge course-card__badge--in-progress">In Progress</span>
+          </div>
+          
+          <div class="course-card__content">
+            <p class="course-card__description">
+              Introduction to machine learning, neural networks, natural language processing, 
+              and computer vision. Build intelligent systems with Python and TensorFlow.
+            </p>
+            
+            <div class="course-card__progress">
+              <div class="progress">
+                <div class="progress__bar progress__bar--artificial-intelligence" style="width: 30%"></div>
+              </div>
+              <div class="progress__info">
+                <span>Progress</span>
+                <span>30% Complete</span>
+              </div>
+            </div>
+            
+            <div class="course-card__stats">
+              <div class="course-stat">
+                <div class="course-stat__value">3/15</div>
+                <div class="course-stat__label">Modules</div>
+              </div>
+              <div class="course-stat">
+                <div class="course-stat__value">5</div>
+                <div class="course-stat__label">Assignments</div>
+              </div>
+              <div class="course-stat">
+                <div class="course-stat__value">B</div>
+                <div class="course-stat__label">Current Grade</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="course-card__footer">
+            <button class="btn btn--outline btn--sm" onclick="openCourseModal('artificial-intelligence')">
+              View Details
+            </button>
+            <button class="btn btn--primary btn--sm">
+              Continue Learning
+            </button>
+          </div>
+        </div>
+
+        <!-- Software Engineering Course -->
+        <div class="course-card course-card--software-engineering">
+          <div class="course-card__header">
+            <div class="course-card__icon course-card__icon--software-engineering">⚙️</div>
+            <div class="course-card__info">
+              <h3 class="course-card__title">Software Engineering</h3>
+              <div class="course-card__instructor">Prof. David Thompson</div>
+            </div>
+            <span class="course-card__badge course-card__badge--upcoming">Starting Soon</span>
+          </div>
+          
+          <div class="course-card__content">
+            <p class="course-card__description">
+              Learn software development methodologies, design patterns, testing strategies, 
+              and project management. Work on real-world team projects using Agile practices.
+            </p>
+            
+            <div class="course-card__progress">
+              <div class="progress">
+                <div class="progress__bar progress__bar--software-engineering" style="width: 0%"></div>
+              </div>
+              <div class="progress__info">
+                <span>Progress</span>
+                <span>Starts Feb 1</span>
+              </div>
+            </div>
+            
+            <div class="course-card__stats">
+              <div class="course-stat">
+                <div class="course-stat__value">0/8</div>
+                <div class="course-stat__label">Modules</div>
+              </div>
+              <div class="course-stat">
+                <div class="course-stat__value">0</div>
+                <div class="course-stat__label">Assignments</div>
+              </div>
+              <div class="course-stat">
+                <div class="course-stat__value">-</div>
+                <div class="course-stat__label">Current Grade</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="course-card__footer">
+            <button class="btn btn--outline btn--sm" onclick="openCourseModal('software-engineering')">
+              View Details
+            </button>
+            <button class="btn btn--primary btn--sm" disabled>
+              Enroll Now
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Study Materials Section -->
+    <section id="materials" class="section">
+      <div class="header-bar">
+        <h1 class="header-bar__title">Study Materials</h1>
+        <div class="header-actions">
+          <span>24 Materials Available</span>
+          <button class="notification-bell">
+            🔔
+            <span class="notification-badge">3</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="materials-header">
+        <div class="filters-container">
+          <div class="filter-group">
+            <label class="filter-label">Subject</label>
+            <select class="filter-select" id="subjectFilter">
+              <option value="all">All Subjects</option>
+              <option value="ds">Data Structures</option>
+              <option value="os">Operating Systems</option>
+              <option value="db">Database Systems</option>
+              <option value="cn">Computer Networks</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Year</label>
+            <select class="filter-select" id="yearFilter">
+              <option value="all">All Years</option>
+              <option value="2024">2024</option>
+              <option value="2023">2023</option>
+              <option value="2022">2022</option>
+            </select>
+          </div>
+        </div>
+        <input type="text" class="search-box" id="materialSearch" placeholder="Search materials...">
+      </div>
+
+      <div class="materials-grid" id="materialsGrid">
+        <!-- Materials will be populated by JavaScript -->
+      </div>
+    </section>
+
+    <!-- Forums Section -->
+    <section id="forums" class="section">
+      <div class="header-bar">
+        <h1 class="header-bar__title">Discussion Forums</h1>
+        <div class="header-actions">
+          <button class="btn btn--primary" id="createPostBtn">Create Post</button>
+          <button class="notification-bell">
+            🔔
+            <span class="notification-badge">3</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="threads-list" id="threadsList">
+        <!-- Threads will be populated by JavaScript -->
+      </div>
+    </section>
+
+    <!-- My Contributions Section -->
+    <section id="contributions" class="section">
+      <div class="header-bar">
+        <h1 class="header-bar__title">My Contributions</h1>
+        <div class="header-actions">
+          <button class="btn btn--success btn--lg" id="uploadMaterialBtn">📤 Upload Material</button>
+          <button class="notification-bell">
+            🔔
+            <span class="notification-badge">3</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="widget" style="margin-bottom: var(--space-lg);">
+        <div class="widget__header">
+          <h3 class="widget__title">Your Upload Stats</h3>
+          <div class="widget__icon">📊</div>
+        </div>
+        <div class="widget__content">
+          <div class="course-card__stats">
+            <div class="course-stat">
+              <div class="course-stat__value" id="totalUploads">5</div>
+              <div class="course-stat__label">Total Uploads</div>
+            </div>
+            <div class="course-stat">
+              <div class="course-stat__value" id="totalDownloads">127</div>
+              <div class="course-stat__label">Total Downloads</div>
+            </div>
+            <div class="course-stat">
+              <div class="course-stat__value" id="totalViews">342</div>
+              <div class="course-stat__label">Total Views</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="materials-grid" id="contributionsGrid">
+        <!-- User contributions will be populated by JavaScript -->
+      </div>
+    </section>
+
+    <!-- Profile Section -->
+    <section id="profile" class="section">
+      <div class="header-bar">
+        <h1 class="header-bar__title">Profile Settings</h1>
+        <div class="header-actions">
+          <button class="btn btn--outline" id="editProfileBtn">Edit Profile</button>
+          <button class="notification-bell">
+            🔔
+            <span class="notification-badge">3</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="profile-header">
+        <div class="profile-avatar">JD</div>
+        <div class="profile-info">
+          <h2 class="profile-name">John Doe</h2>
+          <p class="profile-role">Computer Science Student</p>
+          <p class="profile-bio">Passionate about algorithms, machine learning, and building scalable systems.</p>
+        </div>
+      </div>
+
+      <div class="profile-stats">
+        <div class="profile-stat-card">
+          <div class="stat-value">6</div>
+          <div class="stat-label">Courses Enrolled</div>
+        </div>
+        <div class="profile-stat-card">
+          <div class="stat-value">24</div>
+          <div class="stat-label">Materials Downloaded</div>
+        </div>
+        <div class="profile-stat-card">
+          <div class="stat-value">156</div>
+          <div class="stat-label">Study Hours</div>
+        </div>
+        <div class="profile-stat-card">
+          <div class="stat-value">87%</div>
+          <div class="stat-label">Average Grade</div>
+        </div>
+      </div>
+
+      <div class="profile-form">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" class="form-input" value="John Doe" disabled>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" value="john.doe@student.edu" disabled>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Student ID</label>
+          <input type="text" class="form-input" value="CS2024001" disabled>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Department</label>
+          <input type="text" class="form-input" value="Computer Science" disabled>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Notifications Panel -->
+<div class="notifications-panel" id="notificationsPanel">
+  <div class="notifications-header">
+    <h3 class="notifications-title">Notifications</h3>
+    <button class="close-notifications" id="closeNotifications">&times;</button>
+  </div>
+  <div class="notifications-list">
+    <!-- Notifications will be populated by JavaScript -->
+  </div>
+</div>
+
+<!-- Create Post Modal -->
+<div class="modal-overlay" id="createPostModal">
+  <div class="modal">
+    <div class="modal__header">
+      <h2 class="modal__title">Create New Post</h2>
+      <button class="modal__close" onclick="closeModal('createPostModal')">&times;</button>
+    </div>
+    <div class="modal__content">
+      <div class="form-group">
+        <label class="form-label">Title</label>
+        <input type="text" class="form-input" id="postTitle" placeholder="Enter post title">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Content</label>
+        <textarea class="form-input" id="postContent" rows="6" placeholder="Write your post content..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tags</label>
+        <input type="text" class="form-input" id="postTags" placeholder="Add tags (comma separated)">
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--outline" onclick="closeModal('createPostModal')">Cancel</button>
+      <button class="btn btn--primary" id="submitPost">Create Post</button>
+    </div>
+  </div>
+</div>
+
+<!-- Upload Material Modal -->
+<div class="modal-overlay" id="uploadMaterialModal">
+  <div class="modal">
+    <div class="modal__header">
+      <h2 class="modal__title">Upload Study Material</h2>
+      <button class="modal__close" onclick="closeModal('uploadMaterialModal')">&times;</button>
+    </div>
+    <div class="modal__content">
+      <div class="form-group">
+        <label class="form-label">Title</label>
+        <input type="text" class="form-input" id="uploadTitle" placeholder="Enter material title">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-input" id="uploadDescription" rows="4" placeholder="Describe the material..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Subject</label>
+        <select class="filter-select" id="uploadSubject" style="width: 100%;">
+          <option value="">Select Subject</option>
+          <option value="ds">Data Structures</option>
+          <option value="os">Operating Systems</option>
+          <option value="db">Database Systems</option>
+          <option value="cn">Computer Networks</option>
+          <option value="ai">Artificial Intelligence</option>
+          <option value="se">Software Engineering</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">File Type</label>
+        <select class="filter-select" id="uploadFileType" style="width: 100%;">
+          <option value="">Select File Type</option>
+          <option value="pdf">PDF Document</option>
+          <option value="doc">Word Document</option>
+          <option value="ppt">PowerPoint</option>
+          <option value="zip">ZIP Archive</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">File</label>
+        <input type="file" class="form-input" id="uploadFile" accept=".pdf,.doc,.docx,.ppt,.pptx,.zip">
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--outline" onclick="closeModal('uploadMaterialModal')">Cancel</button>
+      <button class="btn btn--success" id="submitUpload">Upload Material</button>
+    </div>
+  </div>
+</div>
+
+<!-- Course Detail Modal -->
+<div class="modal-overlay" id="course-modal">
+  <div class="modal">
+    <div class="modal__header">
+      <h2 class="modal__title" id="modal-course-title">Course Details</h2>
+      <button class="modal__close" onclick="closeCourseModal()">&times;</button>
+    </div>
+    
+    <div class="modal__content">
+      <div class="modal__section">
+        <h3 class="modal__section-title" id="modal-course-description-title">About This Course</h3>
+        <p id="modal-course-description">Course description will appear here...</p>
+      </div>
+      
+      <div class="modal__section">
+        <h3 class="modal__section-title">Course Progress</h3>
+        <div class="progress">
+          <div class="progress__bar" id="modal-progress-bar" style="width: 0%"></div>
+        </div>
+        <div class="progress__info">
+          <span>Overall Progress</span>
+          <span id="modal-progress-text">0% Complete</span>
+        </div>
+      </div>
+      
+      <div class="modal__stats">
+        <div class="modal-stat">
+          <div class="modal-stat__value" id="modal-modules">0/0</div>
+          <div class="modal-stat__label">Modules Completed</div>
+        </div>
+        <div class="modal-stat">
+          <div class="modal-stat__value" id="modal-assignments">0</div>
+          <div class="modal-stat__label">Assignments</div>
+        </div>
+        <div class="modal-stat">
+          <div class="modal-stat__value" id="modal-quizzes">0</div>
+          <div class="modal-stat__label">Quizzes</div>
+        </div>
+        <div class="modal-stat">
+          <div class="modal-stat__value" id="modal-grade">-</div>
+          <div class="modal-stat__label">Current Grade</div>
+        </div>
+      </div>
+      
+      <div class="modal__section">
+        <h3 class="modal__section-title">Learning Objectives</h3>
+        <ul id="modal-objectives" style="color: var(--text-secondary); line-height: 1.6; padding-left: var(--space-lg);">
+          <!-- Objectives will be populated here -->
+        </ul>
+      </div>
+
+      <div class="modal__section">
+        <h3 class="modal__section-title">Instructor</h3>
+        <p id="modal-instructor" style="color: var(--text-secondary);">Instructor information will appear here...</p>
+      </div>
+    </div>
+    
+    <div class="modal__footer">
+      <button class="btn btn--outline" onclick="closeCourseModal()">Close</button>
+      <button class="btn btn--primary" id="modal-action-btn">Continue Learning</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Sample Data
+  const materialsData = [
+    {
+      id: 1,
+      title: "Data Structures Cheat Sheet",
+      type: "pdf",
+      subject: "ds",
+      year: "2024",
+      description: "Comprehensive cheat sheet covering all major data structures with time complexity analysis.",
+      size: "2.4 MB",
+      downloadUrl: "#"
+    },
+    {
+      id: 2,
+      title: "Operating Systems Lecture Notes",
+      type: "doc",
+      subject: "os",
+      year: "2024",
+      description: "Detailed lecture notes covering process management, memory allocation, and file systems.",
+      size: "1.8 MB",
+      downloadUrl: "#"
+    },
+    {
+      id: 3,
+      title: "Database Design Patterns",
+      type: "pdf",
+      subject: "db",
+      year: "2023",
+      description: "Common database design patterns and best practices for scalable applications.",
+      size: "3.1 MB",
+      downloadUrl: "#"
+    },
+    {
+      id: 4,
+      title: "Network Protocols Presentation",
+      type: "ppt",
+      subject: "cn",
+      year: "2023",
+      description: "Presentation on TCP/IP stack, routing algorithms, and network security protocols.",
+      size: "4.2 MB",
+      downloadUrl: "#"
+    },
+    {
+      id: 5,
+      title: "Algorithm Complexity Analysis",
+      type: "pdf",
+      subject: "ds",
+      year: "2024",
+      description: "In-depth analysis of time and space complexity for common algorithms.",
+      size: "1.5 MB",
+      downloadUrl: "#"
+    },
+    {
+      id: 6,
+      title: "SQL Optimization Guide",
+      type: "doc",
+      subject: "db",
+      year: "2024",
+      description: "Practical guide to SQL query optimization and performance tuning.",
+      size: "2.1 MB",
+      downloadUrl: "#"
+    }
+  ];
+
+  const forumThreads = [
+    {
+      id: 1,
+      title: "Help with Dynamic Programming Problem",
+      author: "Alice Johnson",
+      content: "I'm struggling with understanding how to approach the knapsack problem. Can anyone explain the intuition behind the dynamic programming solution?",
+      tags: ["algorithms", "dynamic-programming", "help"],
+      replies: 12,
+      views: 156,
+      timestamp: "2 hours ago",
+      comments: [
+        {
+          author: "Bob Smith",
+          content: "The key insight is to build up the solution from smaller subproblems...",
+          timestamp: "1 hour ago"
+        },
+        {
+          author: "Carol Davis",
+          content: "Think about what happens when you include or exclude each item...",
+          timestamp: "45 minutes ago"
+        }
+      ]
+    },
+    {
+      id: 2,
+      title: "Best Resources for Learning Machine Learning?",
+      author: "David Wilson",
+      content: "I'm starting my ML journey and would appreciate recommendations for books, courses, and practical projects to work on.",
+      tags: ["machine-learning", "resources", "beginner"],
+      replies: 8,
+      views: 89,
+      timestamp: "1 day ago",
+      comments: [
+        {
+          author: "Eva Brown",
+          content: "I highly recommend Andrew Ng's course on Coursera as a starting point...",
+          timestamp: "20 hours ago"
+        }
+      ]
+    }
+  ];
+
+  const notifications = [
+    {
+      id: 1,
+      title: "New Assignment Posted",
+      content: "Database Systems - Assignment 3 is now available",
+      timestamp: "10 minutes ago",
+      type: "assignment"
+    },
+    {
+      id: 2,
+      title: "Course Update",
+      content: "New materials added to Operating Systems course",
+      timestamp: "2 hours ago",
+      type: "course"
+    },
+    {
+      id: 3,
+      title: "System Maintenance",
+      content: "Scheduled maintenance this Saturday 2-4 AM",
+      timestamp: "1 day ago",
+      type: "system"
+    }
+  ];
+
+  // User's contributed materials
+  const userContributions = [
+    {
+      id: 101,
+      title: "Binary Search Trees Implementation",
+      type: "pdf",
+      subject: "ds",
+      year: "2024",
+      description: "Complete implementation guide for BST with insertion, deletion, and traversal methods.",
+      size: "1.2 MB",
+      downloads: 45,
+      views: 123,
+      uploadDate: "2 weeks ago"
+    },
+    {
+      id: 102,
+      title: "Process Synchronization Examples",
+      type: "doc",
+      subject: "os",
+      year: "2024",
+      description: "Real-world examples of process synchronization using semaphores and monitors.",
+      size: "890 KB",
+      downloads: 32,
+      views: 87,
+      uploadDate: "1 month ago"
+    },
+    {
+      id: 103,
+      title: "SQL Query Optimization Tips",
+      type: "pdf",
+      subject: "db",
+      year: "2024",
+      description: "Performance tuning guide with practical SQL optimization techniques.",
+      size: "2.1 MB",
+      downloads: 28,
+      views: 76,
+      uploadDate: "1 month ago"
+    },
+    {
+      id: 104,
+      title: "Network Security Presentation",
+      type: "ppt",
+      subject: "cn",
+      year: "2023",
+      description: "Comprehensive overview of network security protocols and best practices.",
+      size: "3.5 MB",
+      downloads: 15,
+      views: 42,
+      uploadDate: "2 months ago"
+    },
+    {
+      id: 105,
+      title: "Machine Learning Algorithms",
+      type: "pdf",
+      subject: "ai",
+      year: "2024",
+      description: "Summary of common ML algorithms with implementation examples in Python.",
+      size: "1.8 MB",
+      downloads: 7,
+      views: 14,
+      uploadDate: "3 weeks ago"
+    }
+  ];
+
+  const courses = {
+    'data-structures': {
+      title: 'Data Structures & Algorithms',
+      instructor: 'Prof. Sarah Chen',
+      description: 'Master fundamental data structures including arrays, linked lists, trees, and graphs. Learn algorithm analysis and complexity theory with practical implementations in Python and Java. This course covers essential topics for technical interviews and real-world software development.',
+      progress: 65,
+      modules: '8/12',
+      assignments: 15,
+      quizzes: 8,
+      grade: 'A-',
+      objectives: [
+        'Implement and analyze time complexity of common algorithms',
+        'Design efficient data structures for specific use cases',
+        'Solve complex problems using recursion and dynamic programming',
+        'Understand graph algorithms and their applications',
+        'Prepare for technical interviews with confidence'
+      ],
+      status: 'in-progress'
+    },
+    'operating-systems': {
+      title: 'Operating Systems',
+      instructor: 'Dr. Michael Rodriguez',
+      description: 'Explore process management, memory allocation, file systems, and virtualization. Hands-on experience with Linux kernel modules and system programming. Learn about concurrency, synchronization, and distributed systems principles.',
+      progress: 40,
+      modules: '5/14',
+      assignments: 8,
+      quizzes: 6,
+      grade: 'B+',
+      objectives: [
+        'Understand process scheduling and memory management',
+        'Implement system calls and kernel modules',
+        'Master concurrency and synchronization techniques',
+        'Learn file system design and implementation',
+        'Explore virtualization and container technologies'
+      ],
+      status: 'in-progress'
+    },
+    'database-systems': {
+      title: 'Database Systems',
+      instructor: 'Prof. Jennifer Wang',
+      description: 'Comprehensive coverage of SQL, database design, normalization, and transaction processing. Includes NoSQL databases and distributed systems concepts. Real-world projects with MySQL, PostgreSQL, and MongoDB.',
+      progress: 100,
+      modules: '12/12',
+      assignments: 20,
+      quizzes: 10,
+      grade: 'A',
+      objectives: [
+        'Design normalized database schemas',
+        'Write complex SQL queries and optimize performance',
+        'Understand ACID properties and transaction processing',
+        'Work with NoSQL databases and understand their use cases',
+        'Design distributed database systems'
+      ],
+      status: 'completed'
+    },
+    'computer-networks': {
+      title: 'Computer Networks',
+      instructor: 'Dr. Robert Kim',
+      description: 'Learn network protocols, TCP/IP stack, routing algorithms, and network security. Practical labs with packet analysis and network configuration. Covers both theoretical concepts and hands-on implementation.',
+      progress: 0,
+      modules: '0/10',
+      assignments: 0,
+      quizzes: 0,
+      grade: '-',
+      objectives: [
+        'Understand OSI and TCP/IP network models',
+        'Configure routers and switches',
+        'Analyze network traffic using Wireshark',
+        'Implement network security protocols',
+        'Design scalable network architectures'
+      ],
+      status: 'upcoming'
+    },
+    'artificial-intelligence': {
+      title: 'Artificial Intelligence',
+      instructor: 'Dr. Emily Zhang',
+      description: 'Introduction to machine learning, neural networks, natural language processing, and computer vision. Build intelligent systems with Python and TensorFlow. Includes practical projects and real-world applications.',
+      progress: 30,
+      modules: '3/15',
+      assignments: 5,
+      quizzes: 4,
+      grade: 'B',
+      objectives: [
+        'Understand machine learning algorithms and their applications',
+        'Build and train neural networks using TensorFlow',
+        'Implement natural language processing systems',
+        'Develop computer vision applications',
+        'Deploy AI models to production environments'
+      ],
+      status: 'in-progress'
+    },
+    'software-engineering': {
+      title: 'Software Engineering',
+      instructor: 'Prof. David Thompson',
+      description: 'Learn software development methodologies, design patterns, testing strategies, and project management. Work on real-world team projects using Agile practices. Emphasis on code quality and maintainability.',
+      progress: 0,
+      modules: '0/8',
+      assignments: 0,
+      quizzes: 0,
+      grade: '-',
+      objectives: [
+        'Apply software development methodologies (Agile, Scrum)',
+        'Design software architecture using design patterns',
+        'Implement comprehensive testing strategies',
+        'Manage software projects using modern tools',
+        'Collaborate effectively in development teams'
+      ],
+      status: 'upcoming'
+    }
+  };
+
+  // DOM Elements
+  const sidebar = document.getElementById('sidebar');
+  const mainContent = document.getElementById('mainContent');
+  const sidebarToggle = document.getElementById('sidebarToggle');
+  const overlay = document.getElementById('overlay');
+  const notificationBell = document.getElementById('notificationBell');
+  const notificationsPanel = document.getElementById('notificationsPanel');
+  const closeNotifications = document.getElementById('closeNotifications');
+  const materialsGrid = document.getElementById('materialsGrid');
+  const threadsList = document.getElementById('threadsList');
+  const createPostBtn = document.getElementById('createPostBtn');
+  const createPostModal = document.getElementById('createPostModal');
+  const uploadMaterialBtn = document.getElementById('uploadMaterialBtn');
+  const uploadMaterialModal = document.getElementById('uploadMaterialModal');
+
+  // Initialize Materials
+  function renderMaterials() {
+    materialsGrid.innerHTML = materialsData.map(material => `
+      <div class="material-card" data-subject="${material.subject}" data-year="${material.year}">
+        <div class="material-header">
+          <div class="material-icon material-icon--${material.type}">
+            ${material.type === 'pdf' ? '📄' : material.type === 'doc' ? '📝' : material.type === 'ppt' ? '📊' : '📦'}
+          </div>
+          <div class="material-info">
+            <h3 class="material-title">${material.title}</h3>
+            <div class="material-meta">
+              <span>${material.subject.toUpperCase()}</span>
+              <span>${material.year}</span>
+            </div>
+          </div>
+        </div>
+        <p class="material-description">${material.description}</p>
+        <div class="material-footer">
+          <span class="material-size">${material.size}</span>
+          <button class="btn btn--primary btn--sm" onclick="downloadMaterial(${material.id})">
+            Download
+          </button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Initialize Forum Threads
+  function renderForumThreads() {
+    threadsList.innerHTML = forumThreads.map(thread => `
+      <div class="thread-card">
+        <div class="thread-header">
+          <div>
+            <h3 class="thread-title">${thread.title}</h3>
+            <p class="thread-author">By ${thread.author} • ${thread.timestamp}</p>
+          </div>
+          <div class="thread-stats">
+            <span>${thread.replies} replies</span>
+            <span>${thread.views} views</span>
+          </div>
+        </div>
+        <p class="thread-content">${thread.content}</p>
+        <div class="thread-tags">
+          ${thread.tags.map(tag => `<span class="thread-tag">#${tag}</span>`).join('')}
+        </div>
+        <div class="thread-actions">
+          <button class="thread-action">👍 Like</button>
+          <button class="thread-action">💬 Reply</button>
+          <button class="thread-action">🔖 Save</button>
+        </div>
+        ${thread.comments.length > 0 ? `
+          <div class="comments-section">
+            <h4>Recent Comments</h4>
+            ${thread.comments.map(comment => `
+              <div class="comment">
+                <div class="comment-header">
+                  <span class="comment-author">${comment.author}</span>
+                  <span class="comment-time">${comment.timestamp}</span>
+                </div>
+                <p class="comment-content">${comment.content}</p>
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+      </div>
+    `).join('');
+  }
+
+  // Initialize User Contributions
+  function renderContributions() {
+    const contributionsGrid = document.getElementById('contributionsGrid');
+    contributionsGrid.innerHTML = userContributions.map(material => `
+      <div class="material-card">
+        <div class="material-header">
+          <div class="material-icon material-icon--${material.type}">
+            ${material.type === 'pdf' ? '📄' : material.type === 'doc' ? '📝' : material.type === 'ppt' ? '📊' : '📦'}
+          </div>
+          <div class="material-info">
+            <h3 class="material-title">${material.title}</h3>
+            <div class="material-meta">
+              <span>${material.subject.toUpperCase()}</span>
+              <span>${material.uploadDate}</span>
+            </div>
+          </div>
+        </div>
+        <p class="material-description">${material.description}</p>
+        <div class="course-card__stats" style="margin-bottom: var(--space-md);">
+          <div class="course-stat">
+            <div class="course-stat__value">${material.downloads}</div>
+            <div class="course-stat__label">Downloads</div>
+          </div>
+          <div class="course-stat">
+            <div class="course-stat__value">${material.views}</div>
+            <div class="course-stat__label">Views</div>
+          </div>
+          <div class="course-stat">
+            <div class="course-stat__value">${material.size}</div>
+            <div class="course-stat__label">Size</div>
+          </div>
+        </div>
+        <div class="material-footer">
+          <button class="btn btn--outline btn--sm" onclick="editContribution(${material.id})">
+            ✏️ Edit
+          </button>
+          <button class="btn btn--error btn--sm" onclick="deleteContribution(${material.id})">
+            🗑️ Delete
+          </button>
+        </div>
+      </div>
+    `).join('');
+
+    // Update stats
+    const totalDownloads = userContributions.reduce((sum, m) => sum + m.downloads, 0);
+    const totalViews = userContributions.reduce((sum, m) => sum + m.views, 0);
+    document.getElementById('totalUploads').textContent = userContributions.length;
+    document.getElementById('totalDownloads').textContent = totalDownloads;
+    document.getElementById('totalViews').textContent = totalViews;
+  }
+
+  // Initialize Notifications
+  function renderNotifications() {
+    const notificationsList = document.querySelector('.notifications-list');
+    notificationsList.innerHTML = notifications.map(notification => `
+      <div class="thread-card">
+        <h4 class="thread-title">${notification.title}</h4>
+        <p class="thread-content">${notification.content}</p>
+        <div class="thread-stats">
+          <span>${notification.timestamp}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Edit Contribution
+  function editContribution(materialId) {
+    const material = userContributions.find(m => m.id === materialId);
+    alert(`Editing: ${material.title}\n\nThis would open an edit form in a real application.`);
+  }
+
+  // Delete Contribution
+  function deleteContribution(materialId) {
+    const material = userContributions.find(m => m.id === materialId);
+    if (confirm(`Are you sure you want to delete "${material.title}"?`)) {
+      const index = userContributions.findIndex(m => m.id === materialId);
+      userContributions.splice(index, 1);
+      renderContributions();
+      alert('Material deleted successfully!');
+    }
+  }
+
+  // Handle Material Upload
+  function handleMaterialUpload() {
+    const title = document.getElementById('uploadTitle').value;
+    const description = document.getElementById('uploadDescription').value;
+    const subject = document.getElementById('uploadSubject').value;
+    const fileType = document.getElementById('uploadFileType').value;
+    const file = document.getElementById('uploadFile').files[0];
+
+    if (!title || !description || !subject || !fileType || !file) {
+      alert('Please fill in all fields and select a file');
+      return;
+    }
+
+    // Create new contribution
+    const newContribution = {
+      id: Date.now(),
+      title: title,
+      type: fileType,
+      subject: subject,
+      year: "2024",
+      description: description,
+      size: (file.size / (1024 * 1024)).toFixed(1) + ' MB',
+      downloads: 0,
+      views: 0,
+      uploadDate: "Just now"
+    };
+
+    userContributions.unshift(newContribution);
+    renderContributions();
+    closeModal('uploadMaterialModal');
+
+    // Reset form
+    document.getElementById('uploadTitle').value = '';
+    document.getElementById('uploadDescription').value = '';
+    document.getElementById('uploadSubject').value = '';
+    document.getElementById('uploadFileType').value = '';
+    document.getElementById('uploadFile').value = '';
+
+    alert('Material uploaded successfully!');
+  }
+
+  // Filter Materials
+  function filterMaterials() {
+    const subjectFilter = document.getElementById('subjectFilter').value;
+    const yearFilter = document.getElementById('yearFilter').value;
+    const searchTerm = document.getElementById('materialSearch').value.toLowerCase();
+
+    const materials = document.querySelectorAll('.material-card');
+    
+    materials.forEach(material => {
+      const subject = material.dataset.subject;
+      const year = material.dataset.year;
+      const title = material.querySelector('.material-title').textContent.toLowerCase();
+      const description = material.querySelector('.material-description').textContent.toLowerCase();
+
+      const subjectMatch = subjectFilter === 'all' || subject === subjectFilter;
+      const yearMatch = yearFilter === 'all' || year === yearFilter;
+      const searchMatch = !searchTerm || title.includes(searchTerm) || description.includes(searchTerm);
+
+      material.style.display = subjectMatch && yearMatch && searchMatch ? 'block' : 'none';
+    });
+  }
+
+  // Modal Functions
+  function openModal(modalId) {
+    document.getElementById(modalId).classList.add('active');
+  }
+
+  function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('active');
+  }
+
+  function openCourseModal(courseId) {
+    const course = courses[courseId];
+    const modal = document.getElementById('course-modal');
+    const progressBar = document.getElementById('modal-progress-bar');
+    
+    // Populate modal content
+    document.getElementById('modal-course-title').textContent = course.title;
+    document.getElementById('modal-course-description-title').textContent = `About ${course.title}`;
+    document.getElementById('modal-course-description').textContent = course.description;
+    document.getElementById('modal-progress-text').textContent = `${course.progress}% Complete`;
+    document.getElementById('modal-modules').textContent = course.modules;
+    document.getElementById('modal-assignments').textContent = course.assignments;
+    document.getElementById('modal-quizzes').textContent = course.quizzes;
+    document.getElementById('modal-grade').textContent = course.grade;
+    document.getElementById('modal-instructor').textContent = course.instructor;
+    
+    // Set progress bar
+    progressBar.style.width = `${course.progress}%`;
+    progressBar.className = `progress__bar progress__bar--${courseId}`;
+    
+    // Populate objectives
+    const objectivesList = document.getElementById('modal-objectives');
+    objectivesList.innerHTML = course.objectives.map(obj => 
+      `<li>${obj}</li>`
+    ).join('');
+    
+    // Set action button
+    const actionBtn = document.getElementById('modal-action-btn');
+    if (course.status === 'completed') {
+      actionBtn.textContent = 'Review Course';
+    } else if (course.status === 'upcoming') {
+      actionBtn.textContent = 'Enroll Now';
+      actionBtn.disabled = true;
+    } else {
+      actionBtn.textContent = 'Continue Learning';
+      actionBtn.disabled = false;
+    }
+    
+    // Show modal
+    modal.classList.add('active');
+  }
+
+  function closeCourseModal() {
+    document.getElementById('course-modal').classList.remove('active');
+  }
+
+  // Download Material
+  function downloadMaterial(materialId) {
+    const material = materialsData.find(m => m.id === materialId);
+    alert(`Downloading: ${material.title}`);
+    // In a real app, this would trigger actual download
+  }
+
+  // Event Listeners
+  sidebarToggle.addEventListener('click', () => {
+    sidebar.classList.toggle('active');
+    overlay.classList.toggle('active');
+  });
+
+  overlay.addEventListener('click', () => {
+    sidebar.classList.remove('active');
+    overlay.classList.remove('active');
+  });
+
+  notificationBell.addEventListener('click', () => {
+    notificationsPanel.classList.add('active');
+  });
+
+  closeNotifications.addEventListener('click', () => {
+    notificationsPanel.classList.remove('active');
+  });
+
+  createPostBtn.addEventListener('click', () => {
+    openModal('createPostModal');
+  });
+
+  uploadMaterialBtn.addEventListener('click', () => {
+    openModal('uploadMaterialModal');
+  });
+
+  document.getElementById('submitUpload').addEventListener('click', handleMaterialUpload);
+
+  // Filter event listeners
+  document.getElementById('subjectFilter').addEventListener('change', filterMaterials);
+  document.getElementById('yearFilter').addEventListener('change', filterMaterials);
+  document.getElementById('materialSearch').addEventListener('input', filterMaterials);
+
+  // Section navigation
+  document.querySelectorAll('.sidebar__link').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      
+      // Update active link
+      document.querySelectorAll('.sidebar__link').forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+      
+      // Show target section
+      const target = link.getAttribute('data-section');
+      document.querySelectorAll('.section').forEach(section => {
+        section.classList.toggle('active-section', section.id === target);
+      });
+
+      // Close sidebar on mobile
+      if (window.innerWidth <= 768) {
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+      }
+    });
+  });
+
+  // Initialize all components
+  document.addEventListener('DOMContentLoaded', () => {
+    renderMaterials();
+    renderForumThreads();
+    renderNotifications();
+    renderContributions();
+    
+    // Close modals on overlay click
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+          overlay.classList.remove('active');
+        }
+      });
+    });
+
+    // Close modals on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+          modal.classList.remove('active');
+        });
+        notificationsPanel.classList.remove('active');
+      }
+    });
+  });
+</script>
+</body>
+</html>
